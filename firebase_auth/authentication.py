@@ -2,7 +2,6 @@ from django.contrib.auth import get_user_model
 from firebase_admin import auth
 
 from firebase_auth.apps import firebase_app
-from firebase_auth.forms import UserRegistrationForm
 
 
 User = get_user_model()
