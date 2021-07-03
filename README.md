@@ -2,7 +2,7 @@
 
 Authentication provider for graphene-django and Firebase's Authentication service.
 
-Note this is a WIP and abandoned project since I never ended up using Firebase. But the code is still a good starting point as of writing this.
+This code has been ported to Python 3.9 and extended to be used as a plug and play solution with graphene. It is still somewhat work in progress and contributions are welcome.
 
 Partially inspired by
 [django-firebase-auth](https://github.com/fcornelius/django-firebase-auth)
@@ -12,7 +12,7 @@ This app is used with [Firebase Authentication](https://firebase.google.com/docs
 
 ## Compatibility
 
-This code has only been tested with Python `3.7.0` and Django `2.1.2`.
+This code has only been tested with Python `3.9.0` and Django `2.2.5`.
 
 ## Installing
 
@@ -24,10 +24,10 @@ pipenv install graphene-django-firebase-auth
 
 2. Download the JSON file from your [Firebase console](https://console.firebase.google.com/) with your account's credentials.
 
-3. Set `FIREBASE_KEY_FILE` in your project's settings to the path of the credentials file:
+3. Set `GOOGLE_APPLICATION_CREDENTIALS` in your project's settings to the path of the credentials file:
 
 ```python
-FIREBASE_KEY_FILE = os.path.join(BASE_DIR, 'path/to/firebase-credentials.json')
+GOOGLE_APPLICATION_CREDENTIALS = os.path.join(BASE_DIR, 'path/to/google-service-account.json')
 ```
 
 4. Add the authentication backend to `AUTHENTICATION_BACKENDS`:
@@ -36,7 +36,15 @@ FIREBASE_KEY_FILE = os.path.join(BASE_DIR, 'path/to/firebase-credentials.json')
 AUTHENTICATION_BACKENDS = ['firebase_auth.authentication.FirebaseAuthentication']
 ```
 
-5. Add `firebase_auth` to `INSTALLED_APPS`:
+5. Add authentication middleware to `GRAPHENE`
+
+```python
+GRAPHENE = {
+    'MIDDLEWARE': ['firebase_auth.middleware.FirebaseAuthGrapheneMiddleware',],
+}
+```
+
+6. Add `firebase_auth` to `INSTALLED_APPS`:
 
 ```python
 INSTALLED_APPS = [
@@ -45,14 +53,17 @@ INSTALLED_APPS = [
 ]
 ```
 
-6. Add `FirebaseAuthMixin` to your `AUTH_USER_MODEL`:
+7. Add `FirebaseAuthMixin` to your `AUTH_USER_MODEL`. You need to have a custom user model to make this work.:
 
 ```python
-class User(PermissionsMixin, FirebaseAuthMixin):
-    # ...
+from django.contrib.auth.models import AbstractUser
+from firebase_auth.models import FirebaseAuthMixin
+
+class User(AbstractUser, FirebaseAuthMixin):
+    pass
 ```
 
-7. Build and run your DB migrations to add the changes:
+8. Build and run your DB migrations to add the changes:
 
 ```sh
 ./manage.py makemigrations
@@ -62,6 +73,9 @@ class User(PermissionsMixin, FirebaseAuthMixin):
 ## Using the package
 
 Once installed, authentication will be managed using this package.
+
+The `Firebase JWT Token` is extracted from the header and evaluated by the middleware. It is then send to the authorization backend(s) for validation and django user matching. If successful the `context.user` will be properly populated with the matched user and will be available for further processing.
+
 You can access `info.context.user` to add authentication logic, such as
 with the following:
 
@@ -74,10 +88,11 @@ def resolve_users(self, info, **kwargs):
     return success
 ```
 
-## Sending tokens on the client
+## Sending tokens from the client
 
-Your client will need to send an `Authorization: Bearer` token on each request. How you do this depends on your client and is outside the scope
-of this documentation.
+Your client will need to send an additional HTTP header `Authorization: <Firebase Token>` on each request.
+
+How you do this depends on your client and is outside the scope of this documentation.
 
 ## Developing
 
