@@ -76,6 +76,19 @@ Once installed, authentication will be managed using this package.
 
 The `Firebase JWT Token` is extracted from the header and evaluated by the middleware. It is then send to the authorization backend(s) for validation and django user matching. If successful the `context.user` will be properly populated with the matched user and will be available for further processing.
 
+### How does it work on the backend?
+
+1. The client provides the firebase jwt token via HTTP headers to the django backend via graphql request.
+1. The middleware extracts the token from the request context and delegates authentication to the authentication backend.
+1. The authentication backend performs multiple steps to authenticate a user.
+  1. Validates the token with `Firebase`.
+  1. If valid, tries to retrieve a matching django user from the database via `firebase_uid`
+  1. If not found, tries to get an user as fallback via email. If found, adds the `firebase_uid` for future reference. This helps linking already existing accounts.
+  1. If failed, creates an django user account with the provided infos from `Firebase`, using `firebase_uid` as username and `email` as email.
+  1. Returns the user object and performs the login.
+
+### Using the logged in user
+
 You can access `info.context.user` to add authentication logic, such as
 with the following:
 
