@@ -27,12 +27,9 @@ jobs:
       - name: Install dependencies
         run: |
           pipenv install --dev
-      # - name: Test with pytest
+      # - name: Test with Unittest
       #   run: |
-      #     pipenv run pytest
-      - name: Test with Unittest
-        run: |
-          pipenv run python manage.py test
+      #     pipenv run python manage.py test
       - name: Build wheel
         run: |
           pipenv run pip wheel --no-deps -w ./dist .
