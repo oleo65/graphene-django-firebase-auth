@@ -1,4 +1,9 @@
 {
-  "python.linting.pylintArgs": ["--rcfile", ".pylintrc"],
-  "python.linting.pylintEnabled": true
+  "python.linting.pylintArgs": [
+    "--load-plugins",
+    "pylint_django",
+    "--django-settings-module",
+    "main.settings",
+  ],
+  "python.linting.pylintEnabled": true,
 }

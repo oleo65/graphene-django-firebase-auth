@@ -72,7 +72,7 @@ class FirebaseAuthenticationTests(TestCase):
         token = {
             'uid': '',
         }
-        received_user = FirebaseAuthentication()._get_user_from_token(token)
+        received_user = FirebaseAuthentication()._get_user_from_firebase_user(token)
         assert User.objects.count() == 0
         assert received_user is None
 
@@ -80,7 +80,7 @@ class FirebaseAuthenticationTests(TestCase):
         token = {
             'uid': 'invalid',
         }
-        received_user = FirebaseAuthentication()._get_user_from_token(token)
+        received_user = FirebaseAuthentication()._get_user_from_firebase_user(token)
         assert User.objects.count() == 0
         assert received_user is None
 
@@ -89,7 +89,7 @@ class FirebaseAuthenticationTests(TestCase):
             'uid': stub_firebase_uid,
         }
         assert User.objects.count() == 0
-        received_user = FirebaseAuthentication()._get_user_from_token(token)
+        received_user = FirebaseAuthentication()._get_user_from_firebase_user(token)
         expected_user = User.objects.get(firebase_uid=token['uid'])
         assert User.objects.count() == 1
         assert received_user == expected_user

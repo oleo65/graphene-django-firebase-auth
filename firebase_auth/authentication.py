@@ -22,33 +22,47 @@ class FirebaseAuthentication:
             pass
         return decoded_token
 
-    def _register_unregistered_user(self, firebase_uid):
-        user = None
-        form = UserRegistrationForm(data={
-            'firebase_uid': firebase_uid,
-        })
-
-        if form.is_valid():
-            user = form.save()
-        errors = form.errors
-        return user
-
-    def _get_user_from_token(self, decoded_token):
-        firebase_uid = decoded_token.get('uid')
+    def _get_user_from_firebase_user(self, firebase_user):
+        firebase_uid = firebase_user.get('uid')
         user = None
 
         try:
             user = User.objects.get(firebase_uid=firebase_uid)
         except User.DoesNotExist:
-            user = self._register_unregistered_user(firebase_uid)
+            user = self._register_unregistered_user(firebase_user)
+        return user
+
+    def _register_unregistered_user(self, firebase_user):
+        user = None
+
+        user = self._match_user_by_email(firebase_user)
+
+        if user is None:
+            user = User.objects.create_user(
+                username=firebase_user['uid'], 
+                email=firebase_user['email'], 
+                )
+
+        return user
+
+    def _match_user_by_email(self, firebase_user):
+        user = None
+
+        try:
+            user = User.objects.get(email=firebase_user['email'])
+            user.firebase_uid = firebase_user['uid']
+            user.save()
+        except User.DoesNotExist:
+            pass
+
         return user
 
     def authenticate(self, request):
         user = None
-        decoded_token = self._get_auth_token(request)
+        firebase_user = self._get_auth_token(request)
 
-        if decoded_token:
-            user = self._get_user_from_token(decoded_token)
+        if firebase_user:
+            user = self._get_user_from_firebase_user(firebase_user)
         return user
 
     def get_user(self, user_pk):
