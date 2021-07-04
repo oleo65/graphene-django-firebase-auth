@@ -11,7 +11,7 @@ class FirebaseAuthGrapheneMiddleware():
         token = self.get_token(context)
 
         if token is not None:
-            user = authenticate(request=context, **kwargs)
+            user = authenticate(request=context)
 
             if user is not None:
                 context.user = user

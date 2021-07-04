@@ -14,7 +14,7 @@ class FirebaseAuthentication:
         decoded_token = None
 
         try:
-            decoded_token = auth.verify_id_token(encoded_token, firebase_app, True)
+            decoded_token = auth.verify_id_token(encoded_token, firebase_app)
         except ValueError:
             pass
         except auth.AuthError:
