@@ -3,6 +3,7 @@ from firebase_admin import auth
 
 from firebase_auth.apps import firebase_app
 
+from .settings import AUTH_HEADER_NAME
 
 User = get_user_model()
 
@@ -10,15 +11,15 @@ User = get_user_model()
 class FirebaseAuthentication:
 
     def _get_auth_token(self, request):
-        encoded_token = request.META.get('HTTP_AUTHORIZATION')
+        encoded_token = request.META.get(AUTH_HEADER_NAME)
         decoded_token = None
 
         try:
             decoded_token = auth.verify_id_token(encoded_token, firebase_app)
         except ValueError:
             pass
-        except auth.AuthError:
-            pass
+        except (auth.InvalidIdTokenError, auth.ExpiredIdTokenError, auth.RevokedIdTokenError, auth.CertificateFetchError) as e:
+            print(e.default_message)
         return decoded_token
 
     def _get_user_from_firebase_user(self, firebase_user):
@@ -38,9 +39,9 @@ class FirebaseAuthentication:
 
         if user is None:
             user = User.objects.create_user(
-                username=firebase_user['uid'], 
-                email=firebase_user['email'], 
-                )
+                username=firebase_user['uid'],
+                email=firebase_user['email'],
+            )
 
         return user
 
