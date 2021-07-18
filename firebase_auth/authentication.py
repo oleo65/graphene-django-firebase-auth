@@ -3,7 +3,7 @@ from firebase_admin import auth
 
 from firebase_auth.apps import firebase_app
 
-from .settings import AUTH_HEADER_NAME
+from .settings import firebase_auth_settings
 
 User = get_user_model()
 
@@ -11,7 +11,7 @@ User = get_user_model()
 class FirebaseAuthentication:
 
     def _get_auth_token(self, request):
-        encoded_token = request.META.get(AUTH_HEADER_NAME)
+        encoded_token = request.META.get(firebase_auth_settings.AUTH_HEADER_NAME)
         decoded_token = None
 
         try:
@@ -27,7 +27,12 @@ class FirebaseAuthentication:
         user = None
 
         try:
-            user = User.objects.get(firebase_uid=firebase_uid)
+            if firebase_auth_settings.PROFILE_MODEL:
+                expression = f"{firebase_auth_settings.PROFILE_MODEL}__{firebase_auth_settings.FIREBASE_UID_PROPERTY}"
+            else:
+                expression = firebase_auth_settings.FIREBASE_UID_PROPERTY
+
+            user = User.objects.get(**{expression: firebase_uid})
         except User.DoesNotExist:
             user = self._register_unregistered_user(firebase_user)
         return user
@@ -43,6 +48,8 @@ class FirebaseAuthentication:
                 email=firebase_user['email'],
             )
 
+            user = self._set_firebase_uid(user, firebase_user)
+
         return user
 
     def _match_user_by_email(self, firebase_user):
@@ -50,10 +57,21 @@ class FirebaseAuthentication:
 
         try:
             user = User.objects.get(email=firebase_user['email'])
-            user.firebase_uid = firebase_user['uid']
-            user.save()
+            
+            user = self._set_firebase_uid(user, firebase_user)
         except User.DoesNotExist:
             pass
+
+        return user
+
+    def _set_firebase_uid(self, user, firebase_user):
+        if firebase_auth_settings.PROFILE_MODEL:
+            profile = getattr(user, firebase_auth_settings.PROFILE_MODEL)
+            setattr(profile, firebase_auth_settings.FIREBASE_UID_PROPERTY, firebase_user['uid'])
+            profile.save()
+        else:
+            user.firebase_uid = firebase_user['uid']
+            user.save()
 
         return user
 

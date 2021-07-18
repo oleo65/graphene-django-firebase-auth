@@ -1,7 +1,6 @@
 from django.contrib.auth import authenticate
 from .decorators import one_time_middleware
-from .settings import AUTH_HEADER_NAME
-
+from .settings import firebase_auth_settings
 
 class FirebaseAuthGrapheneMiddleware():
     """Middleware to be used with graphene to authenticate the firebase user via token."""
@@ -20,7 +19,7 @@ class FirebaseAuthGrapheneMiddleware():
         return next_chain(root, info, **kwargs)
 
     def _get_token(self, context):
-        auth_data = context.META.get(AUTH_HEADER_NAME, '').split()
+        auth_data = context.META.get(firebase_auth_settings.AUTH_HEADER_NAME, '').split()
 
         if len(auth_data) == 1 and auth_data[0] != '':
             return auth_data[0]

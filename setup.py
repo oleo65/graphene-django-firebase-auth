@@ -6,7 +6,7 @@ README = open(os.path.join(os.path.dirname(__file__), 'README.md')).read()
 
 setup(
     name='graphene_django_firebase_auth',
-    version='1.2.0',
+    version='1.3.0',
     author='Daniel Spajic',
     author_email='daniel@danieljs.tech',
     description=(
