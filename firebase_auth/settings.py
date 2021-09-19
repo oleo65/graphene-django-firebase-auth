@@ -6,6 +6,7 @@ DEFAULTS = {
     "AUTH_HEADER_NAME": "HTTP_AUTHORIZATION",
     "FIREBASE_UID_PROPERTY": "firebase_uid",
     "PROFILE_MODEL": "",
+    "AUTO_CREATE_FIREBASE_APP": True,
 }
 
 def perform_import(value, setting_name):

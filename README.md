@@ -70,6 +70,19 @@ class User(AbstractUser, FirebaseAuthMixin):
 ./manage.py migrate
 ```
 
+## Additional configuration
+
+All settings will be bundled in the `FIREBASE_AUTH` dictionary.
+
+```python
+FIREBASE_AUTH = {
+    'PROFILE_MODEL': 'profile',
+    'AUTO_CREATE_FIREBASE_APP': True,
+}
+```
+
+`AUTO_CREATE_FIREBASE_APP`: (Default: `True`) If you have more than one firebase product in your django app, you might want to control the init workflow centrally in your `settings.py` file. Setting this flag to false will not implicitly initialize the firebase app within this library but assume an already initialized app.
+
 ## Using the package
 
 Once installed, authentication will be managed using this package.
